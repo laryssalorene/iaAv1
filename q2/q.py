@@ -63,6 +63,9 @@ def tempera_simulada(board_inicial, T0, T_final, nt, metodo, decaimento):
             delta_T = (T0 - T_final) / nt
             T = T - delta_T
         
+        # Print statements for debugging
+        #print(f"Método {metodo}, Iteração {iteracao}, Temperatura {T:.4f}, Conflitos {conflitos_atual}")
+        
         # Parar se encontramos uma solução ótima
         if conflitos_atual == 28:  # Máxima função de aptidão, nenhuma rainha se atacando
             break
@@ -74,24 +77,40 @@ def resolver_8_rainhas(T0, T_final, nt, decaimento):
     Resolver o problema das 8 rainhas utilizando Têmpera Simulada
     com três métodos de escalonamento de temperatura.
     """
+    max_solucoes = 92
     solucoes = []
     
     for metodo in range(1, 4):
-        # Board inicial aleatório
-        board_inicial = np.random.randint(0, 8, size=8)
-        
+        print(f"Iniciando teste com método de escalonamento {metodo}...")
+        solucoes_unicas = set()
         start_time = time.time()
-        solucao, conflitos, conflitos_hist = tempera_simulada(board_inicial, T0, T_final, nt, metodo, decaimento)
-        end_time = time.time()
+        num_solucoes = 0
         
+        while len(solucoes_unicas) < max_solucoes:
+            board_inicial = np.random.randint(0, 8, size=8)
+            solucao, conflitos, conflitos_hist = tempera_simulada(board_inicial, T0, T_final, nt, metodo, decaimento)
+            
+            # Adiciona a solução ao conjunto de soluções únicas
+            solucoes_unicas.add(tuple(solucao))
+            
+            # Adiciona os resultados para a solução encontrada
+            solucoes.append((solucao, conflitos, time.time() - start_time))
+            
+            num_solucoes += 1
+            
+            # Verifica se atingiu o número máximo de soluções
+            if len(solucoes_unicas) >= max_solucoes:
+                break
+        
+        end_time = time.time()
         tempo_execucao = end_time - start_time
-        solucoes.append((solucao, conflitos, tempo_execucao))
         
         # Exibir resultados
         print(f"Teste com método de escalonamento {metodo}:")
-        print(f"Solução encontrada: {solucao}")
-        print(f"Valor da função de aptidão: {conflitos}")
-        print(f"Tempo de execução: {tempo_execucao:.4f} segundos\n")
+        print(f"Número de soluções únicas encontradas: {len(solucoes_unicas)}")
+        print(f"Tempo de execução total: {tempo_execucao:.4f} segundos")
+        print(f"Número total de iterações realizadas: {num_solucoes}")
+        print()
         
         # Plotar o gráfico do histórico da função de aptidão
         plt.plot(conflitos_hist, label=f'Método {metodo}')
