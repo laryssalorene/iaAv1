@@ -38,22 +38,19 @@ def lrs(f, bounds, sigma, Nmax):
 bounds = np.array([-8, -8]), np.array([8, 8])
 sigma = 0.1
 Nmax = 1000
-num_rounds = 100  # Número de rodadas
 
-# Listas para armazenar as soluções obtidas em cada rodada
-all_solutions = []
+# Rodar o algoritmo LRS uma vez
+x_opt, f_opt, all_candidates = lrs(f, bounds, sigma, Nmax)
 
-# Rodar o algoritmo LRS para cada uma das 100 rodadas
-for _ in range(num_rounds):
-    x_opt, f_opt, candidates = lrs(f, bounds, sigma, Nmax)
-    all_solutions.append(x_opt)
-
-# Convertendo soluções para array numpy
-all_solutions = np.array(all_solutions)
+# Utilizando os primeiros 100 valores
+if len(all_candidates) > 100:
+    first_100_candidates = all_candidates[:100]
+else:
+    first_100_candidates = all_candidates
 
 # Calcular a moda das soluções
-mode_x1_result = stats.mode(all_solutions[:, 0], keepdims=True)
-mode_x2_result = stats.mode(all_solutions[:, 1], keepdims=True)
+mode_x1_result = stats.mode(first_100_candidates[:, 0], keepdims=True)
+mode_x2_result = stats.mode(first_100_candidates[:, 1], keepdims=True)
 
 # Acesso correto aos resultados
 mode_x1 = mode_x1_result.mode[0]
@@ -82,9 +79,6 @@ ax = fig.add_subplot(111, projection='3d')
 # Plotando a superfície da função
 ax.plot_surface(X1, X2, Z, cmap='viridis', alpha=0.7)
 
-# Plotando os pontos candidatos durante a busca
-ax.scatter(all_solutions[:, 0], all_solutions[:, 1], f(np.array(all_solutions).T), color='blue', s=10, label="Candidatos")
-
 # Plotando o ponto ótimo encontrado
 ax.scatter(x_opt[0], x_opt[1], f_opt, color='red', s=50, label="Ótimo encontrado")
 
@@ -99,7 +93,7 @@ ax.legend()
 ax.set_xlim(bounds[0][0], bounds[1][0])
 ax.set_ylim(bounds[0][1], bounds[1][1])
 
-# Visualização da tabela com soluções
+# Visualização da tabela com os primeiros 100 valores de candidates
 fig2, (ax2_left, ax2_right) = plt.subplots(1, 2, figsize=(14, 10))
 ax2_left.axis('tight')
 ax2_left.axis('off')
@@ -107,8 +101,8 @@ ax2_right.axis('tight')
 ax2_right.axis('off')
 
 # Dados para as tabelas formatados com 3 casas decimais
-table_data_left = [["Rodada", "x1", "x2"]] + [[i+1, f"{sol[0]:.3f}", f"{sol[1]:.3f}"] for i, sol in enumerate(all_solutions[:50])]
-table_data_right = [["Rodada", "x1", "x2"]] + [[i+51, f"{sol[0]:.3f}", f"{sol[1]:.3f}"] for i, sol in enumerate(all_solutions[50:])]
+table_data_left = [["Índice", "x1", "x2"]] + [[i+1, f"{sol[0]:.3f}", f"{sol[1]:.3f}"] for i, sol in enumerate(first_100_candidates[:50])]
+table_data_right = [["Índice", "x1", "x2"]] + [[i+51, f"{sol[0]:.3f}", f"{sol[1]:.3f}"] for i, sol in enumerate(first_100_candidates[50:])]
 
 # Criando as tabelas
 table_left = ax2_left.table(cellText=table_data_left, colLabels=None, cellLoc='center', loc='center', bbox=[0, 0, 1, 1])
