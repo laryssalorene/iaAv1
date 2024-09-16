@@ -3,45 +3,55 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from scipy import stats
 
-# Definindo a função a ser maximizada
+# Função de perturbação
+def perturb(x, e, x_l, x_u):
+    x_cand = np.random.uniform(low=x-e, high=x+e, size=x.shape)
+    return np.clip(x_cand, x_l, x_u)
+
+# Função f(x1, x2)
 def f(x):
     return np.exp(-(x[0]**2 + x[1]**2)) + 2 * np.exp(-((x[0] - 1.7)**2 + (x[1] - 1.7)**2))
 
-# Função para gerar candidatos na vizinhança
-def generate_neighbor(x_best, epsilon, bounds):
-    # Gera um novo candidato dentro da vizinhança definida
-    x_cand = np.random.uniform(x_best - epsilon, x_best + epsilon, size=x_best.shape)
-    # Certifica que o candidato está dentro dos limites
-    return np.clip(x_cand, bounds[0], bounds[1])
+# Inicializando o algoritmo de Hill Climbing com a lógica do segundo algoritmo
+def hill_climbing(f, bounds, epsilon, max_it, max_viz):
+    # Definir ponto inicial (pode começar em qualquer ponto dentro do domínio)
+    x_opt = np.array([0.0, 0.0])
+    f_opt = f(x_opt)
+    
+    # Limites inferiores e superiores
+    x_l, x_u = bounds
+    
+    # Armazenar todos os pontos candidatos para visualização, começando pelo ponto inicial
+    all_candidates = [x_opt]
+    
+    # Loop de otimização
+    i = 0
+    melhoria = True
+    while i < max_it and melhoria:
+        melhoria = False
+        for j in range(max_viz):
+            # Gerar novo candidato
+            x_cand = perturb(x_opt, epsilon, x_l, x_u)
+            f_cand = f(x_cand)
 
-# Inicializando o algoritmo de Hill Climbing
-def hill_climbing(f, bounds, epsilon, Nmax):
-    # Ponto inicial é o limite inferior
-    x_best = np.array([bounds[0][0], bounds[1][0]])
-    f_best = f(x_best)
-    
-    # Armazenar todos os pontos candidatos para visualização começando pelo ponto inicial
-    all_candidates = [x_best]
-    
-    # Rodar o algoritmo por Nmax iterações
-    for _ in range(Nmax):
-        x_cand = generate_neighbor(x_best, epsilon, bounds)
-        f_cand = f(x_cand)
-        
-        # Se o candidato for melhor, atualiza a melhor solução (maximização)
-        if f_cand > f_best:
-            x_best = x_cand
-            f_best = f_cand
+            # Verificar se houve melhoria (maximização)
+            if f_cand > f_opt:
+                x_opt = x_cand
+                f_opt = f_cand
+                melhoria = True
+                break
+        i += 1
         
         # Armazenar o candidato atual
-        all_candidates.append(x_best)
-    
-    return x_best, f_best, np.array(all_candidates)
+        all_candidates.append(x_opt)
+
+    return x_opt, f_opt, np.array(all_candidates)
 
 # Parâmetros do problema
 bounds = (np.array([-2, -2]), np.array([4, 5]))  # Limites ajustados para x1 e x2
 epsilon = 0.1  # Perturbação para vizinhança
-Nmax = 1000  # Número máximo de iterações
+max_it = 10000  # Número máximo de iterações
+max_viz = 20  # Número máximo de vizinhanças
 num_rounds = 100  # Número de rodadas
 
 # Listas para armazenar as soluções obtidas em cada rodada
@@ -49,7 +59,7 @@ all_solutions = []
 
 # Rodar o algoritmo Hill Climbing para cada uma das 100 rodadas
 for _ in range(num_rounds):
-    x_opt, f_opt, candidates = hill_climbing(f, bounds, epsilon, Nmax)
+    x_opt, f_opt, candidates = hill_climbing(f, bounds, epsilon, max_it, max_viz)
     all_solutions.append(x_opt)
 
 # Convertendo soluções para array numpy
