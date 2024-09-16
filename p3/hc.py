@@ -22,12 +22,14 @@ def hill_climbing(f, bounds, epsilon, Nmax):
     all_candidates = [x_best]
     
     for _ in range(Nmax):
-        x_cand = generate_neighbor(x_best, epsilon, bounds)
-        f_cand = f(x_cand)
-        
-        if f_cand < f_best:  # Minimização
-            x_best = x_cand
-            f_best = f_cand
+        for _ in range(20):  # Adicionado para gerar 20 vizinhos
+            x_cand = generate_neighbor(x_best, epsilon, bounds)
+            f_cand = f(x_cand)
+            
+            if f_cand < f_best:  # Minimização
+                x_best = x_cand
+                f_best = f_cand
+                break
         
         all_candidates.append(x_best)
     

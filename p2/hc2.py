@@ -13,7 +13,7 @@ def f(x):
     return np.exp(-(x[0]**2 + x[1]**2)) + 2 * np.exp(-((x[0] - 1.7)**2 + (x[1] - 1.7)**2))
 
 # Inicializando o algoritmo de Hill Climbing com a lógica do segundo algoritmo
-def hill_climbing(f, bounds, epsilon, max_it, max_viz):
+def hill_climbing(f, bounds, epsilon, max_it, max_viz, patience):
     # Definir ponto inicial (pode começar em qualquer ponto dentro do domínio)
     x_opt = np.array([0.0, 0.0])
     f_opt = f(x_opt)
@@ -26,8 +26,8 @@ def hill_climbing(f, bounds, epsilon, max_it, max_viz):
     
     # Loop de otimização
     i = 0
-    melhoria = True
-    while i < max_it and melhoria:
+    num_no_improvement = 0
+    while i < max_it and num_no_improvement < patience:
         melhoria = False
         for j in range(max_viz):
             # Gerar novo candidato
@@ -39,7 +39,12 @@ def hill_climbing(f, bounds, epsilon, max_it, max_viz):
                 x_opt = x_cand
                 f_opt = f_cand
                 melhoria = True
+                num_no_improvement = 0  # Resetar contador de ausência de melhoria
                 break
+        
+        if not melhoria:
+            num_no_improvement += 1  # Incrementar contador de ausência de melhoria
+        
         i += 1
         
         # Armazenar o candidato atual
@@ -52,22 +57,21 @@ bounds = (np.array([-2, -2]), np.array([4, 5]))  # Limites ajustados para x1 e x
 epsilon = 0.1  # Perturbação para vizinhança
 max_it = 10000  # Número máximo de iterações
 max_viz = 20  # Número máximo de vizinhanças
-num_rounds = 100  # Número de rodadas
+patience = 50  # Número de iterações sem melhoria para parar
 
-# Listas para armazenar as soluções obtidas em cada rodada
-all_solutions = []
-
-# Rodar o algoritmo Hill Climbing para cada uma das 100 rodadas
-for _ in range(num_rounds):
-    x_opt, f_opt, candidates = hill_climbing(f, bounds, epsilon, max_it, max_viz)
-    all_solutions.append(x_opt)
+# Executar o algoritmo Hill Climbing e obter todos os candidatos
+x_opt, f_opt, all_candidates = hill_climbing(f, bounds, epsilon, max_it, max_viz, patience)
 
 # Convertendo soluções para array numpy
-all_solutions = np.array(all_solutions)
+all_candidates = np.array(all_candidates)
+
+# Selecionar os primeiros 100 candidatos (ou menos se houver menos de 100 candidatos)
+num_display = min(100, len(all_candidates))
+display_candidates = all_candidates[:num_display]
 
 # Calcular a moda das soluções
-mode_x1_result = stats.mode(all_solutions[:, 0], keepdims=True)
-mode_x2_result = stats.mode(all_solutions[:, 1], keepdims=True)
+mode_x1_result = stats.mode(display_candidates[:, 0], keepdims=True)
+mode_x2_result = stats.mode(display_candidates[:, 1], keepdims=True)
 
 # Acesso correto aos resultados
 mode_x1 = mode_x1_result.mode[0]
@@ -95,7 +99,7 @@ ax = fig.add_subplot(121, projection='3d')
 ax.plot_surface(X1, X2, Z, cmap='viridis', alpha=0.7)
 
 # Plotando os pontos candidatos durante a busca
-for sol in all_solutions:
+for sol in display_candidates:
     ax.scatter(sol[0], sol[1], f(sol), color='blue', s=10)
 
 # Plotando o ponto ótimo encontrado
@@ -108,6 +112,10 @@ ax.set_ylabel('x2')
 ax.set_zlabel('f(x1, x2)')
 ax.legend()
 
+# Definindo o intervalo dos eixos para cobrir o intervalo completo
+ax.set_xlim(bounds[0][0], bounds[1][0])
+ax.set_ylim(bounds[0][1], bounds[1][1])
+
 # Visualização da tabela com soluções
 fig2, (ax2_left, ax2_right) = plt.subplots(1, 2, figsize=(14, 10))
 ax2_left.axis('tight')
@@ -116,8 +124,8 @@ ax2_right.axis('tight')
 ax2_right.axis('off')
 
 # Dados para as tabelas formatados com 3 casas decimais
-table_data_left = [["Rodada", "x1", "x2"]] + [[i+1, f"{sol[0]:.3f}", f"{sol[1]:.3f}"] for i, sol in enumerate(all_solutions[:50])]
-table_data_right = [["Rodada", "x1", "x2"]] + [[i+51, f"{sol[0]:.3f}", f"{sol[1]:.3f}"] for i, sol in enumerate(all_solutions[50:])]
+table_data_left = [["Índice", "x1", "x2"]] + [[i+1, f"{sol[0]:.3f}", f"{sol[1]:.3f}"] for i, sol in enumerate(display_candidates[:50])]
+table_data_right = [["Índice", "x1", "x2"]] + [[i+51, f"{sol[0]:.3f}", f"{sol[1]:.3f}"] for i, sol in enumerate(display_candidates[50:])]
 
 # Criando as tabelas
 table_left = ax2_left.table(cellText=table_data_left, colLabels=None, cellLoc='center', loc='center', bbox=[0, 0, 1, 1])
