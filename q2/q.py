@@ -67,7 +67,7 @@ def tempera_simulada(board_inicial, T0, T_final, nt, metodo, decaimento):
         #print(f"Método {metodo}, Iteração {iteracao}, Temperatura {T:.4f}, Conflitos {conflitos_atual}")
         
         # Parar se encontramos uma solução ótima
-        if conflitos_atual == 28:  # Máxima função de aptidão, nenhuma rainha se atacando
+        if conflitos_atual == 28:  # Máxima função de aptidão, nenhuma rainha se atacando. valor ótimo 
             break
     
     return board_atual, conflitos_atual, conflitos_hist
