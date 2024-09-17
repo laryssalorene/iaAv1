@@ -10,7 +10,7 @@ def f(x):
            20 + np.e
 
 # Inicializando o algoritmo de Busca Aleatória Global (GRS)
-def grs(f, bounds, N, Nmax):
+def grs(f, bounds, N, Nmax, t):
     # Gerar N pontos iniciais uniformemente dentro dos limites
     x_best = np.random.uniform(bounds[0], bounds[1], (N, 2))
     f_best = np.array([f(x) for x in x_best])
@@ -23,6 +23,9 @@ def grs(f, bounds, N, Nmax):
     # Lista para armazenar todos os pontos candidatos
     all_candidates = [x_best]
     
+    # Inicializando a variável de critério de parada
+    no_improvement_count = 0
+
     # Rodar o algoritmo por Nmax iterações
     for _ in range(Nmax):
         x_cand = np.random.uniform(bounds[0], bounds[1], (N, 2))
@@ -37,7 +40,14 @@ def grs(f, bounds, N, Nmax):
         if f_cand_best < f_best:  # Minimização
             x_best = x_cand_best
             f_best = f_cand_best
-        
+            no_improvement_count = 0  # Resetar o contador de melhorias
+        else:
+            no_improvement_count += 1
+
+        # Critério de parada se não houver melhoria por um número específico de iterações (t)
+        if no_improvement_count >= t:
+            break
+
         # Armazenar o melhor ponto encontrado até agora
         all_candidates.append(x_best)
     
@@ -47,9 +57,10 @@ def grs(f, bounds, N, Nmax):
 bounds = (np.array([-8, -8]), np.array([8, 8]))
 N = 50  # Número de candidatos por iteração
 Nmax = 10000  # Número máximo de iterações
+t = 100  # Critério de parada: número de iterações sem melhoria
 
-# Rodar o algoritmo GRS uma vez
-x_opt, f_opt, all_candidates = grs(f, bounds, N, Nmax)
+# Rodar o algoritmo GRS
+x_opt, f_opt, all_candidates = grs(f, bounds, N, Nmax, t)
 
 # Utilizando os primeiros 100 valores
 if len(all_candidates) > 100:
@@ -82,17 +93,20 @@ Z = -20 * np.exp(-0.2 * np.sqrt(0.5 * (X1**2 + X2**2))) - \
     20 + np.e
 
 # Criando o gráfico 3D
-fig = plt.figure()
+fig = plt.figure(figsize=(14, 7))
 ax = fig.add_subplot(121, projection='3d')
 
 # Plotando a superfície da função
 ax.plot_surface(X1, X2, Z, cmap='viridis', alpha=0.7)
 
+# Plotando os candidatos como pontos azuis
+ax.scatter(all_candidates[:, 0], all_candidates[:, 1], f(all_candidates.T), color='blue', s=20, label="Candidatos")
+
 # Plotando o ponto ótimo encontrado
 ax.scatter(x_opt[0], x_opt[1], f_opt, color='red', s=50, label="Ótimo encontrado")
 
 # Ajustando os rótulos e o título
-ax.set_title('GRS - Minimização de f(x1, x2)')
+ax.set_title('GRS - Min de f(x1, x2)')
 ax.set_xlabel('x1')
 ax.set_ylabel('x2')
 ax.set_zlabel('f(x1, x2)')
@@ -103,34 +117,26 @@ ax.set_xlim(bounds[0][0], bounds[1][0])
 ax.set_ylim(bounds[0][1], bounds[1][1])
 
 # Visualização da tabela com soluções
-fig2, (ax2_left, ax2_right) = plt.subplots(1, 2, figsize=(14, 10))
-ax2_left.axis('tight')
-ax2_left.axis('off')
-ax2_right.axis('tight')
-ax2_right.axis('off')
+fig2, (ax2_left, ax2_right) = plt.subplots(1, 2, figsize=(14, 7))
 
-# Dados para as tabelas formatados com 3 casas decimais
-table_data_left = [["Índice", "x1", "x2"]] + [[i+1, f"{sol[0]:.3f}", f"{sol[1]:.3f}"] for i, sol in enumerate(first_100_candidates[:50])]
-table_data_right = [["Índice", "x1", "x2"]] + [[i+51, f"{sol[0]:.3f}", f"{sol[1]:.3f}"] for i, sol in enumerate(first_100_candidates[50:])]
+# Dados para a tabela formatados com 3 casas decimais
+table_data_left = [["Candidato", "x1", "x2"]] + [[i+1, f"{sol[0]:.3f}", f"{sol[1]:.3f}"] for i, sol in enumerate(first_100_candidates[:50])]
+table_data_right = [["Candidato", "x1", "x2"]] + [[i+51, f"{sol[0]:.3f}", f"{sol[1]:.3f}"] for i, sol in enumerate(first_100_candidates[50:])]
 
 # Criando as tabelas
 table_left = ax2_left.table(cellText=table_data_left, colLabels=None, cellLoc='center', loc='center', bbox=[0, 0, 1, 1])
 table_right = ax2_right.table(cellText=table_data_right, colLabels=None, cellLoc='center', loc='center', bbox=[0, 0, 1, 1])
 
 # Ajustando o espaçamento das linhas
-for (i, key) in enumerate(table_left.get_celld().keys()):
-    cell = table_left.get_celld()[key]
-    if key[0] == 0 or key[1] == 0:  # Header row
-        cell.set_fontsize(10)
-    cell.set_height(0.4)  # Ajusta a altura das linhas
+for table in [table_left, table_right]:
+    for (i, key) in enumerate(table.get_celld().keys()):
+        cell = table.get_celld()[key]
+        if key[0] == 0 or key[1] == 0:  # Header row
+            cell.set_fontsize(8)
+        cell.set_height(0.1)  # Ajusta a altura das linhas para aumentar o espaço em branco
 
-for (i, key) in enumerate(table_right.get_celld().keys()):
-    cell = table_right.get_celld()[key]
-    if key[0] == 0 or key[1] == 0:  # Header row
-        cell.set_fontsize(10)
-    cell.set_height(0.4)  # Ajusta a altura das linhas
-
-# Ajustar o layout da figura para garantir que a tabela seja visível
-plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
+# Ocultar os eixos e remover os títulos
+ax2_left.axis('off')
+ax2_right.axis('off')
 
 plt.show()
