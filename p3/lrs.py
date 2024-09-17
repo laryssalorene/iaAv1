@@ -37,7 +37,7 @@ def lrs(f, bounds, sigma, Nmax):
 # Parâmetros do problema
 bounds = np.array([-8, -8]), np.array([8, 8])
 sigma = 0.1
-Nmax = 1000
+Nmax = 10000
 
 # Rodar o algoritmo LRS uma vez
 x_opt, f_opt, all_candidates = lrs(f, bounds, sigma, Nmax)

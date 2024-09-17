@@ -12,7 +12,7 @@ def f(x):
 def perturb(x, epsilon):
     return x + np.random.uniform(-epsilon, epsilon, size=x.shape)
 
-# Inicializando o algoritmo de Hill Climbing (HC) com 1000 iterações
+# Inicializando o algoritmo de Hill Climbing (HC) com 10000 iterações
 def hc(f, bounds, epsilon, Nmax):
     x_best = np.array([bounds[0][0], bounds[0][1]])
     f_best = f(x_best)
@@ -44,7 +44,7 @@ def hc(f, bounds, epsilon, Nmax):
 # Parâmetros do problema
 bounds = (np.array([-5.12, -5.12]), np.array([5.12, 5.12]))
 epsilon = 0.1
-Nmax = 1000
+Nmax = 10000
 
 # Rodar o algoritmo HC uma vez
 x_opt, f_opt, all_candidates = hc(f, bounds, epsilon, Nmax)
@@ -95,7 +95,7 @@ ax.scatter(first_100_candidates[:, 0], first_100_candidates[:, 1], [f(sol) for s
 ax.scatter(x_opt[0], x_opt[1], f_opt, color='red', s=50, label="Ótimo encontrado")
 
 # Ajustando os rótulos e o título
-ax.set_title('Hill Climbing (HC) - Minimização de f(x1, x2)')
+ax.set_title('Hill Climbing (HC) - Min de f(x1, x2)')
 ax.set_xlabel('x1')
 ax.set_ylabel('x2')
 ax.set_zlabel('f(x1, x2)')

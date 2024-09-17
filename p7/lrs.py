@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import stats
 
 # Função objetivo
 def f(x1, x2):
@@ -13,20 +14,29 @@ def perturb(x1, x2, sigma):
     x2_new = x2 + np.random.normal(0, sigma)
     return np.clip(x1_new, 0, np.pi), np.clip(x2_new, 0, np.pi)
 
-# Algoritmo Local Random Search
-def local_random_search(f, bounds, sigma, max_it):
+# Algoritmo Local Random Search com critério de parada
+def local_random_search(f, bounds, sigma, Nmax, t):
     x1_best, x2_best = np.random.uniform(bounds[0], bounds[1], 2)
     f_best = f(x1_best, x2_best)
     
     candidates = [(x1_best, x2_best)]
     
-    for _ in range(max_it):
+    no_improvement_count = 0
+    
+    for _ in range(Nmax):
         x1_cand, x2_cand = perturb(x1_best, x2_best, sigma)
         f_cand = f(x1_cand, x2_cand)
         
         if f_cand < f_best:  # Minimização
             x1_best, x2_best = x1_cand, x2_cand
             f_best = f_cand
+            no_improvement_count = 0  # Reseta o contador
+        else:
+            no_improvement_count += 1
+        
+        # Critério de parada se não houver melhoria por t iterações
+        if no_improvement_count >= t:
+            break
         
         candidates.append((x1_best, x2_best))
     
@@ -35,14 +45,31 @@ def local_random_search(f, bounds, sigma, max_it):
 # Parâmetros do Local Random Search
 bounds = [0, np.pi]
 sigma = 0.1
-max_it = 1000
+Nmax = 10000
+t = 100  # Critério de parada: número máximo de iterações sem melhoria
 
-(x_opt, y_opt), f_opt, candidates = local_random_search(f, bounds, sigma, max_it)
+(x_opt, y_opt), f_opt, candidates = local_random_search(f, bounds, sigma, Nmax, t)
 
 print(f"Local Random Search - Solução ótima encontrada: x1 = {x_opt}, x2 = {y_opt}")
 print(f"Local Random Search - Valor mínimo da função: f(x1, x2) = {f_opt}")
 
-# Visualização
+# Utilizar os primeiros 100 valores de candidates
+first_100_candidates = candidates[:100]
+
+# Encontrar a moda dos primeiros 100 valores
+mode_x1_result = stats.mode(first_100_candidates[:, 0], keepdims=True)
+mode_x2_result = stats.mode(first_100_candidates[:, 1], keepdims=True)
+
+mode_x1 = mode_x1_result.mode[0]
+count_x1 = mode_x1_result.count[0]
+mode_x2 = mode_x2_result.mode[0]
+count_x2 = mode_x2_result.count[0]
+
+# Resultados da moda no terminal
+print(f"Moda das coordenadas x1: {mode_x1:.3f} com contagem {count_x1}")
+print(f"Moda das coordenadas x2: {mode_x2:.3f} com contagem {count_x2}")
+
+# Visualização da função e dos pontos candidatos (Gráfico 3D)
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
@@ -61,10 +88,43 @@ ax.scatter(candidates[:, 0], candidates[:, 1], [f(x1, x2) for x1, x2 in candidat
 ax.scatter(x_opt, y_opt, f_opt, color='red', s=50, label="Ótimo encontrado")
 
 # Ajustando os rótulos e o título
-ax.set_title('Local Random Search - Minimização de f(x1, x2)')
+ax.set_title('LRS - Min de f(x1, x2)')
 ax.set_xlabel('x1')
 ax.set_ylabel('x2')
 ax.set_zlabel('f(x1, x2)')
 ax.legend()
+
+plt.show()
+
+# Plotar a tabela com os primeiros 100 candidatos
+fig2, (ax2_left, ax2_right) = plt.subplots(1, 2, figsize=(14, 10))
+ax2_left.axis('tight')
+ax2_left.axis('off')
+ax2_right.axis('tight')
+ax2_right.axis('off')
+
+# Dados para as tabelas formatados com 3 casas decimais
+table_data_left = [["Índice", "x1", "x2"]] + [[i+1, f"{sol[0]:.3f}", f"{sol[1]:.3f}"] for i, sol in enumerate(first_100_candidates[:50])]
+table_data_right = [["Índice", "x1", "x2"]] + [[i+51, f"{sol[0]:.3f}", f"{sol[1]:.3f}"] for i, sol in enumerate(first_100_candidates[50:])]
+
+# Criando as tabelas
+table_left = ax2_left.table(cellText=table_data_left, colLabels=None, cellLoc='center', loc='center', bbox=[0, 0, 1, 1])
+table_right = ax2_right.table(cellText=table_data_right, colLabels=None, cellLoc='center', loc='center', bbox=[0, 0, 1, 1])
+
+# Ajustando o espaçamento das linhas
+for (i, key) in enumerate(table_left.get_celld().keys()):
+    cell = table_left.get_celld()[key]
+    if key[0] == 0 or key[1] == 0:  # Header row
+        cell.set_fontsize(10)
+    cell.set_height(0.4)  # Ajusta a altura das linhas
+
+for (i, key) in enumerate(table_right.get_celld().keys()):
+    cell = table_right.get_celld()[key]
+    if key[0] == 0 or key[1] == 0:  # Header row
+        cell.set_fontsize(10)
+    cell.set_height(0.4)  # Ajusta a altura das linhas
+
+# Ajustar o layout da figura para garantir que a tabela seja visível
+plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
 
 plt.show()

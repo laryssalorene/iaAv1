@@ -13,7 +13,7 @@ def f(x):
     return np.exp(-(x[0]**2 + x[1]**2)) + 2 * np.exp(-((x[0] - 1.7)**2 + (x[1] - 1.7)**2))
 
 # Inicializando o algoritmo de Hill Climbing com a lógica do segundo algoritmo
-def hill_climbing(f, bounds, epsilon, max_it, max_viz, patience):
+def hill_climbing(f, bounds, epsilon, Nmax, max_viz, patience):
     # Definir ponto inicial (pode começar em qualquer ponto dentro do domínio)
     x_opt = np.array([0.0, 0.0])
     f_opt = f(x_opt)
@@ -27,7 +27,7 @@ def hill_climbing(f, bounds, epsilon, max_it, max_viz, patience):
     # Loop de otimização
     i = 0
     num_no_improvement = 0
-    while i < max_it and num_no_improvement < patience:
+    while i < Nmax and num_no_improvement < patience:
         melhoria = False
         for j in range(max_viz):
             # Gerar novo candidato
@@ -55,12 +55,12 @@ def hill_climbing(f, bounds, epsilon, max_it, max_viz, patience):
 # Parâmetros do problema
 bounds = (np.array([-2, -2]), np.array([4, 5]))  # Limites ajustados para x1 e x2
 epsilon = 0.1  # Perturbação para vizinhança
-max_it = 10000  # Número máximo de iterações
+Nmax = 10000  # Número máximo de iterações
 max_viz = 20  # Número máximo de vizinhanças
 patience = 50  # Número de iterações sem melhoria para parar
 
 # Executar o algoritmo Hill Climbing e obter todos os candidatos
-x_opt, f_opt, all_candidates = hill_climbing(f, bounds, epsilon, max_it, max_viz, patience)
+x_opt, f_opt, all_candidates = hill_climbing(f, bounds, epsilon, Nmax, max_viz, patience)
 
 # Convertendo soluções para array numpy
 all_candidates = np.array(all_candidates)
@@ -106,7 +106,7 @@ for sol in display_candidates:
 ax.scatter(x_opt[0], x_opt[1], f_opt, color='red', s=50, label="Ótimo encontrado")
 
 # Ajustando os rótulos e o título
-ax.set_title('Hill Climbing - Maximização de f(x1, x2)')
+ax.set_title('Hill Climbing - Max de f(x1, x2)')
 ax.set_xlabel('x1')
 ax.set_ylabel('x2')
 ax.set_zlabel('f(x1, x2)')

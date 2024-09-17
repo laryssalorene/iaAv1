@@ -25,7 +25,7 @@ x_l = -100  # Limite inferior
 x_u = 100   # Limite superior
 
 # Parâmetros do Hill Climbing
-max_it = 1000
+Nmax = 10000
 max_viz = 20
 e = 0.1
 patience = 50  # Número de iterações sem melhoria para parar
@@ -40,7 +40,7 @@ i = 0
 num_no_improvement = 0
 
 # Loop de otimização
-while i < max_it:
+while i < Nmax:
     improvement = False
     for _ in range(max_viz):  # Número de candidatos por iteração
         # Gerar novo candidato
@@ -66,7 +66,7 @@ while i < max_it:
     all_candidates.append(x_opt)
 
     # Exibir ponto final
-    if i == max_it or num_no_improvement >= patience:
+    if i == Nmax or num_no_improvement >= patience:
         ax.scatter(x_opt[0], x_opt[1], f_opt, marker='o', color='g', s=100, linewidth=20)
 
 # Converta a lista de candidatos para numpy array
@@ -88,6 +88,20 @@ count_x2 = mode_x2_result.count[0]
 
 print(f"Moda das coordenadas x1: {mode_x1:.3f} com contagem {count_x1}")
 print(f"Moda das coordenadas x2: {mode_x2:.3f} com contagem {count_x2}")
+
+# Plotando os pontos candidatos durante a busca
+# Corrigido para calcular os valores da função corretamente
+Z_all_candidates = f(all_candidates[:, 0], all_candidates[:, 1])
+ax.scatter(all_candidates[:, 0], all_candidates[:, 1], Z_all_candidates, color='blue', s=10)
+
+# Plotando o ponto ótimo encontrado
+ax.scatter(x_opt[0], x_opt[1], f_opt, color='red', s=50, label="Ótimo encontrado")
+
+ax.set_title('Hill Climbing - Min de f(x1, x2)')
+ax.set_xlabel('x1')
+ax.set_ylabel('x2')
+ax.set_zlabel('f(x1, x2)')
+ax.legend()
 
 # Visualizar a tabela com os primeiros 100 candidatos
 fig2, (ax2_left, ax2_right) = plt.subplots(1, 2, figsize=(14, 10))

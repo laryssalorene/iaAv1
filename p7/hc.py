@@ -15,14 +15,14 @@ def perturb(x1, x2, epsilon):
     return np.clip(x1_new, 0, np.pi), np.clip(x2_new, 0, np.pi)
 
 # Algoritmo Hill Climbing
-def hill_climbing(f, bounds, epsilon, max_it):
+def hill_climbing(f, bounds, epsilon, Nmax):
     x1_best, x2_best = np.random.uniform(bounds[0], bounds[1], 2)
     f_best = f(x1_best, x2_best)
     
     candidates = [(x1_best, x2_best)]
     
     iteration = 0
-    while iteration < max_it:
+    while iteration < Nmax:
         improvement = False
         for _ in range(20):  # Número de candidatos por iteração
             x1_cand, x2_cand = perturb(x1_best, x2_best, epsilon)
@@ -45,9 +45,9 @@ def hill_climbing(f, bounds, epsilon, max_it):
 # Parâmetros do Hill Climbing
 bounds = [0, np.pi]
 epsilon = 0.1
-max_it = 1000
+Nmax = 10000
 
-(x_opt, y_opt), f_opt, candidates = hill_climbing(f, bounds, epsilon, max_it)
+(x_opt, y_opt), f_opt, candidates = hill_climbing(f, bounds, epsilon, Nmax)
 
 # Selecionar os primeiros 100 candidatos (ou menos se houver menos de 100 candidatos)
 if len(candidates) > 100:

@@ -49,7 +49,7 @@ def hc(f, bounds, epsilon, Nmax):
 # Parâmetros do problema
 bounds = np.array([-1, -1]), np.array([3, 3])
 epsilon = 0.1  # Perturbação
-Nmax = 1000    # Número máximo de iterações
+Nmax = 10000    # Número máximo de iterações
 
 # Rodar o algoritmo HC
 x_opt, f_opt, candidates = hc(f, bounds, epsilon, Nmax)
@@ -95,7 +95,7 @@ ax.scatter(candidates[:, 0], candidates[:, 1], f(candidates.T), color='blue', s=
 ax.scatter(x_opt[0], x_opt[1], f_opt, color='red', s=50, label="Ótimo encontrado")
 
 # Ajustando os rótulos e o título
-ax.set_title('Hill Climbing - Maximização de f(x1, x2)')
+ax.set_title('Hill Climbing - Max de f(x1, x2)')
 ax.set_xlabel('x1')
 ax.set_ylabel('x2')
 ax.set_zlabel('f(x1, x2)')

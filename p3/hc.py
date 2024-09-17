@@ -38,7 +38,7 @@ def hill_climbing(f, bounds, epsilon, Nmax):
 # Parâmetros do problema
 bounds = (np.array([-8, -8]), np.array([8, 8]))
 epsilon = 0.1
-Nmax = 1000
+Nmax = 10000
 
 # Rodar o algoritmo Hill Climbing uma vez
 x_opt, f_opt, all_candidates = hill_climbing(f, bounds, epsilon, Nmax)
@@ -84,7 +84,7 @@ ax.plot_surface(X1, X2, Z, cmap='viridis', alpha=0.7)
 ax.scatter(x_opt[0], x_opt[1], f_opt, color='red', s=50, label="Ótimo")
 
 # Ajustando os rótulos e o título
-ax.set_title('Hill Climbing - Minimização de f(x1, x2)')
+ax.set_title('Hill Climbing - Min de f(x1, x2)')
 ax.set_xlabel('x1')
 ax.set_ylabel('x2')
 ax.set_zlabel('f(x1, x2)')

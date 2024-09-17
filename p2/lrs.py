@@ -12,13 +12,16 @@ def perturb(x, sigma):
     return x + np.random.normal(0, sigma, size=x.shape)
 
 # Inicializando o algoritmo de Busca Local Aleatória (LRS)
-def lrs(f, bounds, sigma, Nmax):
+def lrs(f, bounds, sigma, Nmax, t):
     # Gerar x inicial uniformemente dentro dos limites bounds
     x_best = np.random.uniform(bounds[0], bounds[1], 2)
     f_best = f(x_best)
     
     # Armazenar todos os pontos candidatos para visualização começando pelo ponto inicial
     all_candidates = [x_best]
+    
+    # Contador para número de iterações sem melhoria
+    no_improvement_count = 0
     
     # Rodar o algoritmo por Nmax iterações
     for _ in range(Nmax):
@@ -31,6 +34,13 @@ def lrs(f, bounds, sigma, Nmax):
         if f_cand > f_best:
             x_best = x_cand
             f_best = f_cand
+            no_improvement_count = 0  # Reseta o contador
+        else:
+            no_improvement_count += 1
+        
+        # Para o algoritmo se não houver melhoria por t iterações
+        if no_improvement_count >= t:
+            break
         
         # Armazenar o candidato atual
         all_candidates.append(x_best)
@@ -38,25 +48,20 @@ def lrs(f, bounds, sigma, Nmax):
     return x_best, f_best, np.array(all_candidates)
 
 # Parâmetros do problema
-bounds = np.array([-2, -2]), np.array([4, 5])  # Limites ajustados para x1 e x2
+bounds = (np.array([-2, -2]), np.array([4, 5]))  # Limites ajustados para x1 e x2
 sigma = 0.1  # Desvio padrão da perturbação
-Nmax = 1000  # Número máximo de iterações
-num_rounds = 100  # Número de rodadas
+Nmax = 10000  # Número máximo de iterações
+t = 100  # Critério de parada: número máximo de iterações sem melhoria
 
-# Listas para armazenar as soluções obtidas em cada rodada
-all_solutions = []
+# Rodar o algoritmo LRS uma vez para obter os candidatos
+x_opt, f_opt, candidates = lrs(f, bounds, sigma, Nmax, t)
 
-# Rodar o algoritmo LRS para cada uma das 100 rodadas
-for _ in range(num_rounds):
-    x_opt, f_opt, candidates = lrs(f, bounds, sigma, Nmax)
-    all_solutions.append(x_opt)
+# Usar os primeiros 100 valores de all_candidates
+candidates = candidates[:100]
 
-# Convertendo soluções para array numpy
-all_solutions = np.array(all_solutions)
-
-# Calcular a moda das soluções
-mode_x1_result = stats.mode(all_solutions[:, 0], keepdims=True)
-mode_x2_result = stats.mode(all_solutions[:, 1], keepdims=True)
+# Calcular a moda das coordenadas dos primeiros 100 valores
+mode_x1_result = stats.mode(candidates[:, 0], keepdims=True)
+mode_x2_result = stats.mode(candidates[:, 1], keepdims=True)
 
 # Acesso correto aos resultados
 mode_x1 = mode_x1_result.mode[0]
@@ -84,7 +89,7 @@ ax = fig.add_subplot(121, projection='3d')
 ax.plot_surface(X1, X2, Z, cmap='viridis', alpha=0.7)
 
 # Plotando os pontos candidatos durante a busca
-ax.scatter(all_solutions[:, 0], all_solutions[:, 1], f(np.array(all_solutions).T), color='blue', s=10, label="Candidatos")
+ax.scatter(candidates[:, 0], candidates[:, 1], f(candidates.T), color='blue', s=10)
 
 # Plotando o ponto ótimo encontrado
 ax.scatter(x_opt[0], x_opt[1], f_opt, color='red', s=50, label="Ótimo encontrado")
@@ -104,8 +109,8 @@ ax2_right.axis('tight')
 ax2_right.axis('off')
 
 # Dados para as tabelas formatados com 3 casas decimais
-table_data_left = [["Rodada", "x1", "x2"]] + [[i+1, f"{sol[0]:.3f}", f"{sol[1]:.3f}"] for i, sol in enumerate(all_solutions[:50])]
-table_data_right = [["Rodada", "x1", "x2"]] + [[i+51, f"{sol[0]:.3f}", f"{sol[1]:.3f}"] for i, sol in enumerate(all_solutions[50:])]
+table_data_left = [["Índice", "x1", "x2"]] + [[i+1, f"{sol[0]:.3f}", f"{sol[1]:.3f}"] for i, sol in enumerate(candidates[:50])]
+table_data_right = [["Índice", "x1", "x2"]] + [[i+51, f"{sol[0]:.3f}", f"{sol[1]:.3f}"] for i, sol in enumerate(candidates[50:])]
 
 # Criando as tabelas
 table_left = ax2_left.table(cellText=table_data_left, colLabels=None, cellLoc='center', loc='center', bbox=[0, 0, 1, 1])
