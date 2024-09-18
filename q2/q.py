@@ -10,14 +10,12 @@ def f(board):
     """
     conflitos = 0
     n = len(board)
-    
     # Contar conflitos para cada par de rainhas
     for i in range(n):
         for j in range(i + 1, n):
             # Rainhas na mesma linha ou na mesma diagonal
             if board[i] == board[j] or abs(board[i] - board[j]) == abs(i - j):
                 conflitos += 1
-                
     # A função de aptidão é 28 menos o número de conflitos
     return 28 - conflitos
 
@@ -63,69 +61,17 @@ def tempera_simulada(board_inicial, T0, T_final, nt, metodo, decaimento):
             delta_T = (T0 - T_final) / nt
             T = T - delta_T
         
-        # Print statements for debugging
-        #print(f"Método {metodo}, Iteração {iteracao}, Temperatura {T:.4f}, Conflitos {conflitos_atual}")
-        
         # Parar se encontramos uma solução ótima
         if conflitos_atual == 28:  # Máxima função de aptidão, nenhuma rainha se atacando. valor ótimo 
             break
     
     return board_atual, conflitos_atual, conflitos_hist
 
-import numpy as np
-import matplotlib.pyplot as plt
-import random
-import math
-import time
-
-def f(board):
-    conflitos = 0
-    n = len(board)
-    for i in range(n):
-        for j in range(i + 1, n):
-            if board[i] == board[j] or abs(board[i] - board[j]) == abs(i - j):
-                conflitos += 1
-    return 28 - conflitos
-
-def perturba_solucao(board):
-    n = len(board)
-    nova_board = board.copy()
-    col = random.randint(0, n - 1)
-    nova_linha = random.randint(0, n - 1)
-    nova_board[col] = nova_linha
-    return nova_board
-
-def tempera_simulada(board_inicial, T0, T_final, nt, metodo, decaimento):
-    board_atual = board_inicial
-    T = T0
-    conflitos_atual = f(board_atual)
-    conflitos_hist = [conflitos_atual]
-    
-    for iteracao in range(nt):
-        nova_board = perturba_solucao(board_atual)
-        conflitos_novo = f(nova_board)
-        delta = conflitos_novo - conflitos_atual
-        
-        if delta > 0 or random.uniform(0, 1) < math.exp(delta / T):
-            board_atual = nova_board
-            conflitos_atual = conflitos_novo
-        
-        conflitos_hist.append(conflitos_atual)
-        
-        if metodo == 1:
-            T = decaimento * T
-        elif metodo == 2:
-            T = T / (1 + decaimento * math.sqrt(T))
-        elif metodo == 3:
-            delta_T = (T0 - T_final) / nt
-            T = T - delta_T
-        
-        if conflitos_atual == 28:
-            break
-    
-    return board_atual, conflitos_atual, conflitos_hist
-
 def resolver_8_rainhas(T0, T_final, nt, decaimento):
+    """
+    Resolver o problema das 8 rainhas utilizando Têmpera Simulada
+    com três métodos de escalonamento de temperatura.
+    """
     max_solucoes = 92
     solucoes = []
     
@@ -138,23 +84,27 @@ def resolver_8_rainhas(T0, T_final, nt, decaimento):
             board_inicial = np.random.randint(0, 8, size=8)
             solucao, conflitos, conflitos_hist = tempera_simulada(board_inicial, T0, T_final, nt, metodo, decaimento)
             
+            # Adiciona a solução ao conjunto de soluções únicas se não estiver duplicada
             solucao_tuple = tuple(solucao)
             if solucao_tuple not in solucoes_unicas:
                 solucoes_unicas.add(solucao_tuple)
                 solucoes.append((solucao, conflitos, time.time() - start_time))
             
+            # Verifica se atingiu o número máximo de soluções
             if len(solucoes_unicas) >= max_solucoes:
                 break
         
         end_time = time.time()
         tempo_execucao = end_time - start_time
         
+        # Exibir resultados
         print(f"Teste com método de escalonamento {metodo}:")
         print(f"Número de soluções únicas encontradas: {len(solucoes_unicas)}")
         print(f"Tempo de execução total: {tempo_execucao:.4f} segundos")
         print(f"Número total de iterações realizadas: {len(solucoes)}")
         print()
         
+        # Plotar o gráfico do histórico da função de aptidão
         plt.plot(conflitos_hist, label=f'Método {metodo}')
     
     plt.xlabel('Iterações')
@@ -164,15 +114,6 @@ def resolver_8_rainhas(T0, T_final, nt, decaimento):
     plt.show()
     
     return solucoes
-
-T0 = 1000
-T_final = 1
-nt = 1000
-decaimento = 0.99
-
-solucoes = resolver_8_rainhas(T0, T_final, nt, decaimento)
-
-
 
 # Parâmetros
 T0 = 1000  # Temperatura inicial
